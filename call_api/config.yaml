@@ -1,0 +1,7 @@
+
+# Folder user
+
+session_manager:
+  dir_data: "data_browser"
+
+

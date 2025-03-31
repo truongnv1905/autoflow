@@ -68,7 +68,8 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
+# Sphinx documentationfrom scipy.special import softmax
+
 docs/_build/
 
 # PyBuilder
@@ -126,6 +127,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+data_browser/
 ENV/
 env.bak/
 venv.bak/
