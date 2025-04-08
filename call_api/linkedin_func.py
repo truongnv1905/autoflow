@@ -57,7 +57,7 @@ async def search_companies(data: SearchRequestCompanies):
 		if not company_elements:
 			return
 
-		for company in company_elements:
+		for company in company_elements[1:-1]:
 			# Kiểm tra nếu đã đạt giới hạn
 			if len(companies) >= max_companies:
 				break
