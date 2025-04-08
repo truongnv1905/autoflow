@@ -1,11 +1,22 @@
 from pydantic import BaseModel
 
 
-class SearchRequest(BaseModel):
+class SearchRequestJobs(BaseModel):
 	username: str
 	password: str
 	search_keyword: str
-	max_companies: int = 100
+	numbers: int = 100
+	location: str
+	days_ago: int
+
+
+class SearchRequestCompanies(BaseModel):
+	username: str
+	password: str
+	search_keyword: str
+	numbers: int = 100
+	location: str
+	after_time: str
 
 
 class SearchPeopleRequest(BaseModel):

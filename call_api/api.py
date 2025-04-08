@@ -1,20 +1,30 @@
 from fastapi import APIRouter
 
-from call_api.linkedin_func import get_info_employees, search_companies
-from call_api.schema import SearchPeopleRequest, SearchRequest
+from call_api import google_func, linkedin_func
+from call_api.schema import SearchPeopleRequest, SearchRequestJobs
 from call_api.session_manager import check_session
 
 router = APIRouter()
 
 
 @router.post('/linkedin/search_companies')
-async def search(data: SearchRequest):
-	return await search_companies(data)
+async def linkedin_search_companies(data: SearchRequestJobs):
+	return await linkedin_func.search_companies(data)
 
 
 @router.post('/linkedin/search_employees')
-async def search_employees(data: SearchPeopleRequest):
-	return await get_info_employees(data)
+async def linkedin_search_employees(data: SearchPeopleRequest):
+	return await linkedin_func.get_info_employees(data)
+
+
+@router.post('/linkedin/search_jobs')
+async def linkedin_search_jobs(data: SearchRequestJobs):
+	return await linkedin_func.search_jobs(data)
+
+
+@router.post('/google/search_jobs')
+async def google_search_jobs(data: SearchRequestJobs):
+	return await google_func.searching_jobs(data)
 
 
 @router.get('/check_session/{username}')
