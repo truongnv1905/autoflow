@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 from playwright.async_api import async_playwright
 
@@ -19,12 +20,12 @@ async def searching_jobs(data: SearchRequestJobs):
 	Search for jobs on Google Jobs with location and time filters
 
 	Args:
-		data: SearchRequest object containing search parameters
-		location: Location to search in (e.g. "Ho Chi Minh City")
-		time_period: Time period filter (e.g. "day", "week", "month")
+	    data: SearchRequest object containing search parameters
+	    location: Location to search in (e.g. "Ho Chi Minh City")
+	    time_period: Time period filter (e.g. "day", "week", "month")
 
 	Returns:
-		Dict containing job listings and metadata
+	    Dict containing job listings and metadata
 	"""
 	logger.info(f'Starting job search for keyword: {data.search_keyword} in location: {data.location}')
 	session_path = os.path.join(SESSION_DIR, data.username)
@@ -50,7 +51,7 @@ async def searching_jobs(data: SearchRequestJobs):
 				search_url = f'https://www.google.com/search?q={search_keyword}&ibp=htl;jobs'
 				logger.info(f'Navigating to search URL: {search_url}')
 				await page.goto(search_url)
-				await page.wait_for_selector('div[role="main"]', timeout=5000)
+				await page.wait_for_selector('div[role="main"]')
 
 				jobs = []
 				page_number = 1
@@ -210,3 +211,251 @@ async def searching_jobs(data: SearchRequestJobs):
 				logger.info('Browser closed successfully')
 			except Exception as e:
 				logger.error(f'Error closing browser: {str(e)}')
+
+
+async def search_company_linkedin(username: str, password: str, company_name: str, location: str):
+	"""
+	Search for a company's LinkedIn profile using Google search and get company details
+
+	Args:
+	    username: Username for authentication
+	    password: Password for authentication
+	    company_name: Name of the company to search for
+	    location: Location of the company
+
+	Returns:
+	    dict: Company details including LinkedIn URL, website, email, phone and CEO information
+	"""
+	logger.info(f'Starting LinkedIn profile search for company: {company_name} in {location}')
+	logger.info(f'Using credentials - Username: {username}')
+
+	session_path = os.path.join(SESSION_DIR, username)
+	browser = None
+	try:
+		logger.info('Initializing Playwright browser')
+		async with async_playwright() as p:
+			# Check if user has session
+			if os.path.exists(session_path):
+				logger.info(f'Using existing session at: {session_path}')
+				browser = await p.chromium.launch_persistent_context(
+					session_path,
+					headless=False,
+					args=[
+						'--disable-blink-features=AutomationControlled',
+						'--disable-infobars',
+						'--disable-notifications',
+						'--disable-popup-blocking',
+						'--disable-extensions',
+						'--disable-save-password-bubble',
+						'--disable-single-click-autofill',
+						'--disable-translate',
+						'--disable-web-security',
+						'--no-sandbox',
+						'--disable-setuid-sandbox',
+						'--disable-dev-shm-usage',
+						'--disable-accelerated-2d-canvas',
+						'--disable-gpu',
+						'--window-size=1920,1080',
+						'--start-maximized',
+					],
+					ignore_default_args=['--enable-automation'],
+					viewport={'width': 1920, 'height': 1080},
+					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+					locale='en-US',
+				)
+			else:
+				logger.info(f'Creating new session at: {session_path}')
+				os.makedirs(session_path)
+				browser = await p.chromium.launch_persistent_context(
+					session_path,
+					headless=False,
+					args=[
+						'--disable-blink-features=AutomationControlled',
+						'--disable-infobars',
+						'--disable-notifications',
+						'--disable-popup-blocking',
+						'--disable-extensions',
+						'--disable-save-password-bubble',
+						'--disable-single-click-autofill',
+						'--disable-translate',
+						'--disable-web-security',
+						'--no-sandbox',
+						'--disable-setuid-sandbox',
+						'--disable-dev-shm-usage',
+						'--disable-accelerated-2d-canvas',
+						'--disable-gpu',
+						'--window-size=1920,1080',
+						'--start-maximized',
+					],
+					ignore_default_args=['--enable-automation'],
+					viewport={'width': 1920, 'height': 1080},
+					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+					locale='en-US',
+				)
+
+			logger.info('Creating new browser page')
+			page = await browser.new_page()
+
+			# Set English language preference
+			await page.set_extra_http_headers({'Accept-Language': 'en-US,en;q=0.9'})
+
+			logger.info('Browser page created successfully')
+
+			try:
+				# Construct search query
+				search_query = f'{company_name} {location} linkedin company profile'
+				encoded_query = quote(search_query)
+				search_url = f'https://www.google.com/search?q={encoded_query}&hl=en'
+				logger.info(f'Constructed search query: {search_query}')
+				logger.info(f'Encoded search query: {encoded_query}')
+				logger.info(f'Navigating to search URL: {search_url}')
+
+				logger.info('Loading Google search page')
+				await page.goto(search_url)
+				logger.info('Waiting for main content to load')
+				await page.wait_for_selector('div[role="main"]')
+				logger.info('Simulating human behavior')
+				await simulate_human_behavior(page)
+
+				# Look for LinkedIn URLs in search results
+				linkedin_url = ''
+				logger.info('Searching for LinkedIn URLs in results')
+				search_results = await page.query_selector_all('a[href*="linkedin.com/company"]')
+				logger.info(f'Found {len(search_results)} potential LinkedIn links')
+
+				if search_results:
+					logger.info('Processing LinkedIn links')
+					for idx, result in enumerate(search_results, 1):
+						logger.info(f'Processing link {idx}/{len(search_results)}')
+						href = await result.get_attribute('href')
+						if href and 'linkedin.com/company' in href:
+							# Extract the actual LinkedIn URL from Google's redirect
+							linkedin_url = href.split('url=')[1].split('&')[0] if 'url=' in href else href
+							logger.info(f'Found valid LinkedIn URL: {linkedin_url}')
+							break
+						else:
+							logger.info(f'Link {idx} is not a valid LinkedIn company URL')
+
+				if not linkedin_url:
+					logger.warning('No valid LinkedIn company URL found in search results')
+					return {
+						'linkedin_url': '',
+						'website': '',
+						'email': '',
+						'phone': '',
+						'CEOLinkedin': '',
+						'CTOLinkedin': '',
+						'CFOLinkedin': '',
+						'HeadOfEngineering_linkedin': '',
+						'error': 'Could not find LinkedIn URL',
+					}
+				result = {
+					'linkedin_url': linkedin_url,
+					'website': '',
+					'email': '',
+					'phone': '',
+					'CEO': '',
+					'CTO': '',
+					'CFO': '',
+					'HeadOfEngineering': '',
+					'error': None,
+				}
+
+				# Navigate to LinkedIn company page
+				logger.info(f'Navigating to LinkedIn company page: {linkedin_url}')
+				linkedin_url_people = linkedin_url + '/people/?lang=en'
+				await page.goto(linkedin_url_people)
+				# await page.wait_for_selector('div[role="main"]')
+				await simulate_human_behavior(page)
+
+				# Get CEO information
+				try:
+					logger.info('Looking for CEO information')
+					# Click on "People" tab
+					# Search for CEO
+					logger.info('Waiting for search input to appear')
+					await page.wait_for_selector('textarea.org-people__search-input', timeout=5000)
+
+					for text in ['CEO', 'CTO', 'CFO', 'HeadofEngineering']:
+						# Check and click the button first using exact class structure
+						logger.info('Checking for search button')
+						button_selector = 'button.artdeco-button.artdeco-button--tertiary.artdeco-button--2.artdeco-button--muted[type="button"]'
+						search_button = await page.query_selector(button_selector)
+
+						if search_button:
+							logger.info('Found search button, clicking it')
+							await search_button.click()
+							await simulate_human_behavior(page)
+							await page.wait_for_timeout(1000)
+						else:
+							logger.warning('Search button not found')
+
+						search_input = await page.query_selector('textarea.org-people__search-input')
+						if search_input:
+							logger.info(f'Search input found, filling in {text} keyword')
+							await search_input.fill(text)
+							logger.info('Pressing Enter to search')
+							await page.keyboard.press('Enter')
+							await page.wait_for_timeout(2000)
+
+							# Wait for search results and get first profile
+							logger.info('Waiting for search results')
+							await page.wait_for_selector(
+								'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing', timeout=5000
+							)
+							# Get first profile link
+							first_profile = await page.query_selector(
+								'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing a[href*="/in/"]'
+							)
+							if first_profile:
+								profile_url = await first_profile.get_attribute('href')
+								if profile_url:
+									result[text] = profile_url
+									logger.info(f'Found CEO LinkedIn: {result[text]}')
+								else:
+									logger.warning('Profile URL not found in first result')
+							else:
+								logger.warning('No profile results found')
+				except Exception as e:
+					logger.error(f'Error getting {text} information: {str(e)}')
+
+				return result
+
+			except Exception as e:
+				logger.error(f'Error during LinkedIn search: {str(e)}')
+				logger.error(f'Error details: {type(e).__name__}')
+				return {
+					'linkedin_url': '',
+					'website': '',
+					'email': '',
+					'phone': '',
+					'CEOLinkedin': '',
+					'CTOLinkedin': '',
+					'CFOLinkedin': '',
+					'HeadOfEngineering_linkedin': '',
+					'error': str(e),
+				}
+
+	except Exception as e:
+		logger.error(f'Error during browser setup: {str(e)}')
+		logger.error(f'Error details: {type(e).__name__}')
+		return {
+			'linkedin_url': '',
+			'website': '',
+			'email': '',
+			'phone': '',
+			'CEOLinkedin': '',
+			'CTOLinkedin': '',
+			'CFOLinkedin': '',
+			'HeadOfEngineering_linkedin': '',
+			'error': str(e),
+		}
+	finally:
+		if browser:
+			try:
+				logger.info('Closing browser')
+				await browser.close()
+				logger.info('Browser closed successfully')
+			except Exception as e:
+				logger.error(f'Error closing browser: {str(e)}')
+				logger.error(f'Error details: {type(e).__name__}')
