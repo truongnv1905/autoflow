@@ -1,4 +1,7 @@
+import logging
 import os
+import time
+from datetime import datetime
 
 from playwright.async_api import async_playwright
 
@@ -6,6 +9,13 @@ from call_api.schema import SearchPeopleRequest, SearchRequestCompanies, SearchR
 from call_api.utils import config, simulate_human_behavior
 
 SESSION_DIR = config.config['session_manager']['dir_data']
+
+# Configure logging
+logging.basicConfig(
+	level=logging.INFO,
+	format='%(asctime)s - %(levelname)s - %(message)s',
+	handlers=[logging.FileHandler('linkedin_jobs_search.log'), logging.StreamHandler()],
+)
 
 
 async def search_companies(data: SearchRequestCompanies):
@@ -191,21 +201,28 @@ async def search_jobs(data: SearchRequestJobs, location: str = None, distance: i
 	    distance: Search radius in miles (e.g. 25, 50, 100)
 	    location_type: Type of location (e.g. "I", "O" - I: In-person, O: Remote)
 	"""
+	start_time = time.time()
+	logging.info(f'Starting job search for keyword: {data.search_keyword}')
+	logging.info(f'Search parameters - Location: {location}, Distance: {distance}, Location Type: {location_type}')
+
 	session_path = os.path.join(SESSION_DIR, data.username)
 
 	async with async_playwright() as p:
 		# Kiểm tra nếu user có session
 		if os.path.exists(session_path):
 			browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+			logging.info('Using existing session')
 		else:
 			os.makedirs(session_path)  # Tạo thư mục lưu session nếu chưa có
 			browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+			logging.info('Created new session')
 
 		page = await browser.new_page()
 
 		# Kiểm tra nếu chưa đăng nhập
 		await page.goto('https://www.linkedin.com/feed/')
 		if 'login' in page.url:
+			logging.info('User not logged in, attempting login')
 			# Tiến hành đăng nhập
 			await page.goto('https://www.linkedin.com/login')
 			await simulate_human_behavior(page)
@@ -216,14 +233,17 @@ async def search_jobs(data: SearchRequestJobs, location: str = None, distance: i
 			await page.click('button[type=submit]')
 			await simulate_human_behavior(page)
 			await page.wait_for_load_state('load')
+			logging.info('Login completed')
 
 		jobs = []
 		page_number = 1
 		max_jobs = data.numbers  # Giới hạn số lượng công việc
+		page_start_time = time.time()
 
 		while True:
 			# Kiểm tra nếu đã đạt giới hạn
 			if len(jobs) >= max_jobs:
+				logging.info(f'Reached maximum jobs limit: {max_jobs}')
 				break
 
 			# Xây dựng URL tìm kiếm với các filter
@@ -241,14 +261,17 @@ async def search_jobs(data: SearchRequestJobs, location: str = None, distance: i
 			if location_type:
 				search_url += f'&f_WT={location_type}'
 
+			logging.info(f'Searching page {page_number}: {search_url}')
 			await page.goto(search_url)
 			await page.wait_for_selector('ul[class*="jobs-search__results-list"]', timeout=5000)
 
 			# Lấy danh sách công việc
 			job_elements = await page.query_selector_all('ul[class*="jobs-search__results-list"] li')
+			logging.info(f'Found {len(job_elements)} jobs on page {page_number}')
 
 			# Nếu không có kết quả, thoát vòng lặp
 			if not job_elements:
+				logging.info('No more jobs found')
 				break
 
 			for job in job_elements:
@@ -292,9 +315,10 @@ async def search_jobs(data: SearchRequestJobs, location: str = None, distance: i
 							'Page': page_number,
 						}
 					)
+					logging.info(f'Added job: {title} at {company}')
 
 				except Exception as e:
-					print(f'Error processing job: {str(e)}')
+					logging.error(f'Error processing job: {str(e)}')
 					continue
 
 			# Kiểm tra nút next page
@@ -304,10 +328,27 @@ async def search_jobs(data: SearchRequestJobs, location: str = None, distance: i
 
 			next_button = await page.query_selector('button[aria-label="Next"]')
 			if not next_button or await next_button.is_disabled():
+				logging.info('No more pages available')
 				break
 
 			page_number += 1
+			page_end_time = time.time()
+			logging.info(f'Page {page_number - 1} processing time: {page_end_time - page_start_time:.2f} seconds')
+			page_start_time = time.time()
 			await simulate_human_behavior(page)
 
 		await browser.close()
-		return {'jobs': jobs, 'total_pages': page_number, 'total_jobs': len(jobs), 'limit_reached': len(jobs) >= max_jobs}
+		end_time = time.time()
+		total_time = end_time - start_time
+		logging.info(f'Search completed. Total time: {total_time:.2f} seconds')
+		logging.info(f'Total jobs found: {len(jobs)}')
+		logging.info(f'Total pages processed: {page_number}')
+
+		return {
+			'jobs': jobs,
+			'total_pages': page_number,
+			'total_jobs': len(jobs),
+			'limit_reached': len(jobs) >= max_jobs,
+			'search_time': total_time,
+			'timestamp': datetime.now().isoformat(),
+		}
