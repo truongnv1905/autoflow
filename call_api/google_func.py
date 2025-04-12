@@ -122,8 +122,8 @@ async def searching_jobs(data: SearchRequestJobs):
 									'Company': company,
 									'Location': location,
 									'TimeAgo': info_time,
-									'Jobs_Decriptstion': '',
-									'URL_Jobs': '',
+									'JobDecription': '',
+									'UrlJob': '',
 								}
 								if title != '' and info_time <= data.days_ago:
 									# try:
@@ -147,8 +147,8 @@ async def searching_jobs(data: SearchRequestJobs):
 										)
 										url_jd = await url_jd_element.get_attribute('href') if url_jd_element else ''
 
-										job['Jobs_Decriptstion'] = jobs_decriptions
-										job['URL_Jobs'] = url_jd
+										job['JobDecription'] = jobs_decriptions
+										job['UrlJob'] = url_jd
 									# except:
 									# 	pass
 									if job not in jobs:
