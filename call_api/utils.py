@@ -18,6 +18,6 @@ config = AppConfig()
 
 async def simulate_human_behavior(page):
 	await page.mouse.move(random.randint(100, 500), random.randint(100, 500))
-	await page.wait_for_timeout(random.randint(500, 1000))
+	await page.wait_for_timeout(random.randint(500, 2000))
 	await page.mouse.wheel(0, random.randint(300, 700))
-	await page.wait_for_timeout(random.randint(500, 1500))
+	await page.wait_for_timeout(random.randint(500, 2000))
