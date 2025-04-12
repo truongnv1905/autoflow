@@ -27,6 +27,21 @@ async def google_search_jobs(data: SearchRequestJobs):
 	return await google_func.searching_jobs(data)
 
 
+@router.post('/google/search_company_linkedin')
+async def google_search_company_linkedin(username: str, password: str, company_name: str, location: str):
+	"""
+	Search for a company's LinkedIn profile using Google search
+
+	Args:
+	    company_name: Name of the company to search for
+	    location: Location of the company
+
+	Returns:
+	    str: LinkedIn URL of the company if found, empty string otherwise
+	"""
+	return await google_func.search_company_linkedin(username, password, company_name, location)
+
+
 @router.get('/check_session/{username}')
 async def check(username: str):
 	return check_session(username)
