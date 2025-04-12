@@ -126,7 +126,8 @@ async def searching_jobs(data: SearchRequestJobs):
 
 								job = {
 									'JobTitle': data.search_keyword,
-									'Location': location,
+									'LocationDetail': location,
+									'Location': data.location,
 									'Title': title,
 									'URL': '',
 									'Source': '',
@@ -349,6 +350,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 				if not linkedin_url:
 					logger.warning('No valid LinkedIn company URL found in search results')
 					return {
+						'CompanyName': company_name,
 						'linkedin_url': '',
 						'website': '',
 						'email': '',
@@ -360,6 +362,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 						'error': 'Could not find LinkedIn URL',
 					}
 				result = {
+					'CompanyName': company_name,
 					'linkedin_url': linkedin_url,
 					'website': '',
 					'email': '',
@@ -435,6 +438,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 				logger.error(f'Error during LinkedIn search: {str(e)}')
 				logger.error(f'Error details: {type(e).__name__}')
 				return {
+					'CompanyName': company_name,
 					'linkedin_url': '',
 					'website': '',
 					'email': '',
@@ -450,6 +454,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 		logger.error(f'Error during browser setup: {str(e)}')
 		logger.error(f'Error details: {type(e).__name__}')
 		return {
+			'CompanyName': company_name,
 			'linkedin_url': '',
 			'website': '',
 			'email': '',
