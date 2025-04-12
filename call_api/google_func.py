@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime, timedelta
 
 from playwright.async_api import async_playwright
 
@@ -118,13 +119,19 @@ async def searching_jobs(data: SearchRequestJobs):
 										logger.error(f'Error processing time info: {str(e)}')
 										info_time = 100
 
+								# Calculate actual posted date
+								posted_date = datetime.now() - timedelta(days=info_time)
+								formatted_date = posted_date.strftime('%Y-%m-%d')
+
 								job = {
-									'Title': title,
-									'Company': company,
+									'JobTitle': data.search_keyword,
 									'Location': location,
-									'TimeAgo': info_time,
-									'JobDecription': '',
-									'UrlJob': '',
+									'Title': title,
+									'URL': '',
+									'Source': '',
+									'PostedDate': formatted_date,
+									'Snippet': '',
+									'CompanyName': company,
 								}
 								if title != '' and info_time <= data.days_ago:
 									try:
@@ -148,8 +155,14 @@ async def searching_jobs(data: SearchRequestJobs):
 											url_jd = await url_jd_element.get_attribute('href') if url_jd_element else ''
 
 											logger.info(f'Successfully extracted job details for: {title}')
-											job['JobDecription'] = jobs_decriptions
-											job['UrlJob'] = url_jd
+											job['Snippet'] = jobs_decriptions
+											job['URL'] = url_jd
+											# Extract domain name from URL
+											if url_jd and 'https://' in url_jd:
+												domain = url_jd.split('https://')[1].split('.')[0]
+												job['Source'] = domain
+											else:
+												job['Source'] = ''
 									except Exception as e:
 										logger.error(f'Error processing job details: {str(e)}')
 										continue
