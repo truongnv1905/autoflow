@@ -183,8 +183,8 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 												job_data['Snippet'] = jobs_decriptions
 												job_data['URL'] = url_jd if url_jd else ''
 												if url_jd and 'https://' in url_jd:
-													domain = url_jd.split('https://')[1].split('.')[0]
-													job_data['Source'] = domain
+													domain = url_jd.split('https://')[1].split('.')[0:3]
+													job_data['Source'] = '.'.join(domain)
 												else:
 													job_data['Source'] = ''
 									except Exception as e:
