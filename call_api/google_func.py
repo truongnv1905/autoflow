@@ -292,6 +292,15 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 					locale='en-US',
 				)
+				page = await browser.new_page()
+				await page.goto('https://www.linkedin.com/feed/')
+				if 'login' in page.url:
+					await page.goto('https://www.linkedin.com/login')
+					await simulate_human_behavior(page)
+					await page.fill('input[type=email]', username)
+					await simulate_human_behavior(page)
+					await page.fill('input[type=password]', password)
+					await simulate_human_behavior(page)
 
 			logger.info('Creating new browser page')
 			page = await browser.new_page()
