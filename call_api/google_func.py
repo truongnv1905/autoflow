@@ -301,6 +301,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					await simulate_human_behavior(page)
 					await page.fill('input[type=password]', password)
 					await simulate_human_behavior(page)
+					await page.click('button[type=submit]')
 
 			logger.info('Creating new browser page')
 			page = await browser.new_page()
