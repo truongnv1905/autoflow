@@ -267,7 +267,7 @@ async def search_jobs(data: SearchRequestJobs):
 						logging.info('Created new session')
 				except Exception as browser_err:
 					logging.error(f'Error launching browser: {str(browser_err)}')
-					return []
+					return {'success': False, 'message': f'Error launching browser: {str(browser_err)}', 'jobs': []}
 
 				page = await browser.new_page()
 
@@ -291,18 +291,22 @@ async def search_jobs(data: SearchRequestJobs):
 						if 'feed' not in page.url and 'checkpoint' in page.url:
 							logging.error('Login checkpoint detected. Manual verification may be required.')
 							await browser.close()
-							return []
+							return {
+								'success': False,
+								'message': 'Login checkpoint detected. Manual verification may be required.',
+								'jobs': [],
+							}
 						elif 'login' in page.url:
 							logging.error('Login failed. Check username and password.')
 							await browser.close()
-							return []
+							return {'success': False, 'message': 'Login failed. Check username and password.', 'jobs': []}
 
 						logging.info('Login completed')
 				except Exception as login_err:
 					logging.error(f'Error during login: {str(login_err)}')
 					if browser:
 						await browser.close()
-					return []
+					return {'success': False, 'message': f'Error during login: {str(login_err)}', 'jobs': []}
 
 				page_number = 1
 				max_jobs = data.numbers  # Giới hạn số lượng công việc
@@ -372,9 +376,7 @@ async def search_jobs(data: SearchRequestJobs):
 						logging.info(f'Searching page {page_number}: {search_url}')
 						try:
 							await page.goto(search_url)
-							await page.wait_for_selector(
-								'div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000
-							)
+							await page.wait_for_selector('div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000)
 						except Exception as nav_err:
 							logging.error(f'Error navigating to search page: {str(nav_err)}')
 							# Try a more generic selector or continue to next page
@@ -389,9 +391,7 @@ async def search_jobs(data: SearchRequestJobs):
 						# Lấy danh sách công việc
 						job_elements = []
 						try:
-							job_elements = await page.query_selector_all(
-								'div[class*="scaffold-layout__list"] li[id*="ember"]'
-							)
+							job_elements = await page.query_selector_all('div[class*="scaffold-layout__list"] li[id*="ember"]')
 							start_number += len(job_elements)
 							logging.info(f'Found {len(job_elements)} jobs on page {page_number}')
 						except Exception as job_list_err:
@@ -530,11 +530,17 @@ async def search_jobs(data: SearchRequestJobs):
 
 														# Nếu chưa có thời gian đăng, kiểm tra xem span này có chứa thông tin thời gian không
 														if posting_time == 'N/A' and (
-															'ago' in span_text.lower() or 'posted' in span_text.lower()
+															'ago' in span_text.lower()
+															or 'posted' in span_text.lower()
+															or 'trước' in span_text.lower()
 															or 'minutes' in span_text.lower()
 															or 'hours' in span_text.lower()
 															or 'days' in span_text.lower()
-															or 'weeks' in span_text.lower() 
+															or 'weeks' in span_text.lower()
+															or 'phút' in span_text.lower()
+															or 'giờ' in span_text.lower()
+															or 'ngày' in span_text.lower()
+															or 'tuần' in span_text.lower()
 														):
 															try:
 																posting_time = span_text
@@ -630,14 +636,14 @@ async def search_jobs(data: SearchRequestJobs):
 				}
 				logging.info(f'Search metadata: {metadata}')
 
-				return jobs
+				return {'success': True, 'message': f'Found {len(jobs)} jobs for {data.search_keyword}', 'jobs': jobs}
 
 			except Exception as e:
 				logging.error(f'Error in search_jobs process: {str(e)}')
 				if 'browser' in locals() and browser:
 					await browser.close()
-				return []
+				return {'success': False, 'message': f'Error in search_jobs process: {str(e)}', 'jobs': []}
 
 	except Exception as e:
 		logging.error(f'Unexpected error in search_jobs: {str(e)}')
-		return []
+		return {'success': False, 'message': f'Unexpected error in search_jobs: {str(e)}', 'jobs': []}
