@@ -373,7 +373,7 @@ async def search_jobs(data: SearchRequestJobs):
 						try:
 							await page.goto(search_url)
 							await page.wait_for_selector(
-								'ul[class*="NzjDcIOVnGXbrQwoeqiHzHByIFAvnnKRXrNHRU"] li[id*="ember"]', timeout=10000
+								'div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000
 							)
 						except Exception as nav_err:
 							logging.error(f'Error navigating to search page: {str(nav_err)}')
@@ -390,7 +390,7 @@ async def search_jobs(data: SearchRequestJobs):
 						job_elements = []
 						try:
 							job_elements = await page.query_selector_all(
-								'ul[class*="NzjDcIOVnGXbrQwoeqiHzHByIFAvnnKRXrNHRU"] li[id*="ember"]'
+								'div[class*="scaffold-layout__list"] li[id*="ember"]'
 							)
 							start_number += len(job_elements)
 							logging.info(f'Found {len(job_elements)} jobs on page {page_number}')
@@ -531,6 +531,10 @@ async def search_jobs(data: SearchRequestJobs):
 														# Nếu chưa có thời gian đăng, kiểm tra xem span này có chứa thông tin thời gian không
 														if posting_time == 'N/A' and (
 															'ago' in span_text.lower() or 'posted' in span_text.lower()
+															or 'minutes' in span_text.lower()
+															or 'hours' in span_text.lower()
+															or 'days' in span_text.lower()
+															or 'weeks' in span_text.lower() 
 														):
 															try:
 																posting_time = span_text
