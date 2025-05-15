@@ -215,7 +215,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 						# 		email = f'Error: {str(e)}'
 
 						employees.append(
-							{'Name': name, 'Title': title, 'Company': company, 'Profile URL': profile_url, 'Email': email}
+							{'Name': name, 'Title': title, 'Company': company, 'ProfileURL': profile_url, 'Email': email}
 						)
 						print(f'Name: {name} - Title: {title} - URL: {profile_url} - Email: {email}')
 
