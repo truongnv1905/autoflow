@@ -50,14 +50,36 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 			session_start = time.time()
 			if os.path.exists(session_path):
 				logger.info(f'Using existing session at: {session_path}')
-				browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+				browser = await p.chromium.launch_persistent_context(
+					session_path,
+					headless=False,
+					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+					locale='en-US',
+					viewport={'width': 1366, 'height': 768},
+				)
 			else:
 				logger.info(f'Creating new session at: {session_path}')
 				os.makedirs(session_path)
-				browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+				browser = await p.chromium.launch_persistent_context(
+					session_path,
+					headless=False,
+					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+					locale='en-US',
+					viewport={'width': 1366, 'height': 768},
+				)
 			session_time = log_timing(session_start, 'Session setup')
 
 			page = await browser.new_page()
+			await page.set_extra_http_headers(
+				{
+					'accept-language': 'en-US,en;q=0.9',
+					'accept-encoding': 'gzip, deflate, br',
+					'referer': 'https://www.linkedin.com',
+					'upgrade-insecure-requests': '1',
+					'sec-fetch-user': '?1',
+					'sec-fetch-site': 'same-origin',
+				}
+			)
 			logger.info('Browser page created successfully')
 
 			# Navigate to Google Jobs
@@ -345,6 +367,16 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					locale='en-US',
 				)
 				page = await browser.new_page()
+				await page.set_extra_http_headers(
+					{
+						'accept-language': 'en-US,en;q=0.9',
+						'accept-encoding': 'gzip, deflate, br',
+						'referer': 'https://www.linkedin.com',
+						'upgrade-insecure-requests': '1',
+						'sec-fetch-user': '?1',
+						'sec-fetch-site': 'same-origin',
+					}
+				)
 				await page.goto('https://www.linkedin.com/feed/')
 				if 'login' in page.url:
 					await page.goto('https://www.linkedin.com/login')
@@ -358,7 +390,16 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 
 			logger.info('Creating new browser page')
 			page = await browser.new_page()
-
+			await page.set_extra_http_headers(
+				{
+					'accept-language': 'en-US,en;q=0.9',
+					'accept-encoding': 'gzip, deflate, br',
+					'referer': 'https://www.linkedin.com',
+					'upgrade-insecure-requests': '1',
+					'sec-fetch-user': '?1',
+					'sec-fetch-site': 'same-origin',
+				}
+			)
 			# Set English language preference
 			await page.set_extra_http_headers({'Accept-Language': 'en-US,en;q=0.9'})
 

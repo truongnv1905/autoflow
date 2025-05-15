@@ -25,15 +25,37 @@ async def search_companies(data: SearchRequestCompanies):
 	async with async_playwright() as p:
 		# Kiểm tra nếu user có session
 		if os.path.exists(session_path):
-			browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+			browser = await p.chromium.launch_persistent_context(
+				session_path,
+				headless=False,
+				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+				locale='en-US',
+				viewport={'width': 1366, 'height': 768},
+			)
 		else:
 			os.makedirs(session_path)  # Tạo thư mục lưu session nếu chưa có
-			browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+			browser = await p.chromium.launch_persistent_context(
+				session_path,
+				headless=False,
+				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+				locale='en-US',
+				viewport={'width': 1366, 'height': 768},
+			)
 
 		page = await browser.new_page()
-
+		await page.set_extra_http_headers(
+			{
+				'accept-language': 'en-US,en;q=0.9',
+				'accept-encoding': 'gzip, deflate, br',
+				'referer': 'https://www.linkedin.com',
+				'upgrade-insecure-requests': '1',
+				'sec-fetch-user': '?1',
+				'sec-fetch-site': 'same-origin',
+			}
+		)
 		# Kiểm tra nếu chưa đăng nhập
 		await page.goto('https://www.linkedin.com/feed/')
+		await simulate_human_behavior(page)
 		if 'login' in page.url:
 			# Tiến hành đăng nhập
 			await page.goto('https://www.linkedin.com/login')
@@ -60,7 +82,7 @@ async def search_companies(data: SearchRequestCompanies):
 			search_url = f'https://www.linkedin.com/search/results/companies/?keywords={data.search_keyword}&page={page_number}'
 		await page.goto(search_url)
 		await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
-
+		await simulate_human_behavior(page)
 		# Lấy danh sách công ty
 		company_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
 
@@ -129,9 +151,24 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 	employees = []
 
 	async with async_playwright() as p:
-		browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+		browser = await p.chromium.launch_persistent_context(
+			session_path,
+			headless=False,
+			user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+			locale='en-US',
+			viewport={'width': 1366, 'height': 768},
+		)
 		page = await browser.new_page()
-
+		await page.set_extra_http_headers(
+			{
+				'accept-language': 'en-US,en;q=0.9',
+				'accept-encoding': 'gzip, deflate, br',
+				'referer': 'https://www.linkedin.com',
+				'upgrade-insecure-requests': '1',
+				'sec-fetch-user': '?1',
+				'sec-fetch-site': 'same-origin',
+			}
+		)
 		try:
 			for i in range(1, 100):
 				try:
@@ -218,7 +255,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 							{'Name': name, 'Title': title, 'Company': company, 'ProfileURL': profile_url, 'Email': email}
 						)
 						print(f'Name: {name} - Title: {title} - URL: {profile_url} - Email: {email}')
-
+						await simulate_human_behavior(page)
 					except Exception as e:
 						logging.error(
 							f'Error processing employee: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}'
@@ -301,21 +338,44 @@ async def search_jobs(data: SearchRequestJobs):
 				browser = None
 				try:
 					if os.path.exists(session_path):
-						browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+						browser = await p.chromium.launch_persistent_context(
+							session_path,
+							headless=False,
+							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+							locale='en-US',
+							viewport={'width': 1366, 'height': 768},
+						)
 						logging.info('Using existing session')
 					else:
 						os.makedirs(session_path)  # Tạo thư mục lưu session nếu chưa có
-						browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+						# browser = await p.chromium.launch_persistent_context(session_path, headless=False)
+						browser = await p.chromium.launch_persistent_context(
+							session_path,
+							headless=False,
+							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+							locale='en-US',
+							viewport={'width': 1366, 'height': 768},
+						)
 						logging.info('Created new session')
 				except Exception as browser_err:
 					logging.error(f'Error launching browser: {str(browser_err)}')
 					return {'success': False, 'message': f'Error launching browser: {str(browser_err)}', 'jobs': []}
 
 				page = await browser.new_page()
-
+				await page.set_extra_http_headers(
+					{
+						'accept-language': 'en-US,en;q=0.9',
+						'accept-encoding': 'gzip, deflate, br',
+						'referer': 'https://www.linkedin.com',
+						'upgrade-insecure-requests': '1',
+						'sec-fetch-user': '?1',
+						'sec-fetch-site': 'same-origin',
+					}
+				)
 				# Kiểm tra nếu chưa đăng nhập
 				try:
 					await page.goto('https://www.linkedin.com/feed/')
+					await simulate_human_behavior(page)
 					if 'login' in page.url:
 						logging.info('User not logged in, attempting login')
 						# Tiến hành đăng nhập
@@ -419,6 +479,7 @@ async def search_jobs(data: SearchRequestJobs):
 						try:
 							await page.goto(search_url)
 							await page.wait_for_selector('div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000)
+							await simulate_human_behavior(page)
 						except Exception as nav_err:
 							logging.error(f'Error navigating to search page: {str(nav_err)}')
 							# Try a more generic selector or continue to next page

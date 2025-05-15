@@ -1,3 +1,4 @@
+import asyncio
 import random
 
 import yaml
@@ -17,7 +18,17 @@ config = AppConfig()
 
 
 async def simulate_human_behavior(page):
-	await page.mouse.move(random.randint(100, 500), random.randint(100, 500))
-	await page.wait_for_timeout(random.randint(500, 2000))
-	await page.mouse.wheel(0, random.randint(300, 700))
-	await page.wait_for_timeout(random.randint(500, 2000))
+	# Di chuyển chuột ngẫu nhiên
+	for _ in range(random.randint(1, 3)):
+		x = random.randint(0, 1200)
+		y = random.randint(0, 800)
+		await page.mouse.move(x, y, steps=random.randint(5, 15))
+		await asyncio.sleep(random.uniform(0.3, 1.2))
+
+	# Scroll nhẹ như người dùng
+	if random.random() > 0.5:
+		await page.mouse.wheel(0, random.randint(200, 800))
+		await asyncio.sleep(random.uniform(0.5, 1.5))
+
+	# Thời gian delay giữa các thao tác
+	await asyncio.sleep(random.uniform(2.5, 5.0))
