@@ -145,8 +145,8 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 	session_path = os.path.join(SESSION_DIR, data_request.username)
 
 	# Check if session exists, if not return early
-	if not os.path.exists(session_path):
-		return {'error': 'No active session found. Please login first.'}
+	# if not os.path.exists(session_path):
+	# 	return {'error': 'No active session found. Please login first.'}
 
 	# Define important positions to look for
 	important_positions = ['CEO', 'CTO', 'CFO', 'COO', 'Director', 'Manager', 'Lead', 'Head', 'Founder', 'President']
@@ -171,9 +171,24 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				'sec-fetch-site': 'same-origin',
 			}
 		)
+				# Kiểm tra nếu chưa đăng nhập
+		if not os.path.exists(session_path):
+			await page.goto('https://www.linkedin.com/feed/')
+			await simulate_human_behavior(page)
+			if 'login' in page.url:
+				# Tiến hành đăng nhập
+				await page.goto('https://www.linkedin.com/login')
+				await simulate_human_behavior(page)
+				await page.fill('input[type=email]', data_request.username)
+				await simulate_human_behavior(page)
+				await page.fill('input[type=password]', "Thiennhi2502")
+				await simulate_human_behavior(page)
+				await page.click('button[type=submit]')
+				await simulate_human_behavior(page)
+				await page.wait_for_load_state('load')
 		try:
 			list_page = list(range(1, 100))
-			random.shuffle(list_page)
+			# random.shuffle(list_page)
 			for i in list_page:
 				try:
 					# Navigate to the search URL using company name
