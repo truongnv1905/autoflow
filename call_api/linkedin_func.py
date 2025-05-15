@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import time
 import traceback
 from datetime import datetime, timedelta
@@ -89,8 +90,9 @@ async def search_companies(data: SearchRequestCompanies):
 		# Nếu không có kết quả, thoát vòng lặp
 		if not company_elements:
 			return
-
-		for company in company_elements[1:-1]:
+		company_elements = company_elements[1:-1]
+		random.shuffle(company_elements)
+		for company in company_elements:
 			# Kiểm tra nếu đã đạt giới hạn
 			if len(companies) >= max_companies:
 				break
@@ -170,7 +172,9 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 			}
 		)
 		try:
-			for i in range(1, 100):
+			list_page = list(range(1, 100))
+			random.shuffle(list_page)
+			for i in list_page:
 				try:
 					# Navigate to the search URL using company name
 					company_name = data_request.company_url.strip()
@@ -194,7 +198,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				employee_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
 				if not employee_elements:
 					break
-
+				random.shuffle(employee_elements)
 				for employee in employee_elements:
 					try:
 						# Get employee name
@@ -511,7 +515,7 @@ async def search_jobs(data: SearchRequestJobs):
 						if not job_elements:
 							logging.info('No more jobs found')
 							break
-
+						random.shuffle(job_elements)
 						for job in job_elements:
 							try:
 								# Kiểm tra nếu đã đạt giới hạn

@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import time
 from datetime import datetime, timedelta
 from typing import Any, Dict
@@ -125,6 +126,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 							break
 
 						job_processing_start = time.time()
+						random.shuffle(job_elements)
 						for job in job_elements:
 							try:
 								if len(jobs) >= max_jobs:
