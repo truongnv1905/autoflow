@@ -54,7 +54,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					session_path,
 					headless=False,
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-					locale='en-US',
+					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
 				)
 			else:
@@ -64,7 +64,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					session_path,
 					headless=False,
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-					locale='en-US',
+					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
 				)
 			session_time = log_timing(session_start, 'Session setup')
@@ -72,7 +72,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 			page = await browser.new_page()
 			await page.set_extra_http_headers(
 				{
-					'accept-language': 'en-US,en;q=0.9',
+					'accept-language': 'vi-VN,vi;q=0.9',
 					'accept-encoding': 'gzip, deflate, br',
 					'referer': 'https://www.linkedin.com',
 					'upgrade-insecure-requests': '1',
@@ -335,7 +335,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					ignore_default_args=['--enable-automation'],
 					viewport={'width': 1920, 'height': 1080},
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-					locale='en-US',
+					locale='vi-VN',
 				)
 			else:
 				logger.info(f'Creating new session at: {session_path}')
@@ -364,12 +364,12 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					ignore_default_args=['--enable-automation'],
 					viewport={'width': 1920, 'height': 1080},
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-					locale='en-US',
+					locale='vi-VN',
 				)
 				page = await browser.new_page()
 				await page.set_extra_http_headers(
 					{
-						'accept-language': 'en-US,en;q=0.9',
+						'accept-language': 'vi-VN,vi;q=0.9',
 						'accept-encoding': 'gzip, deflate, br',
 						'referer': 'https://www.linkedin.com',
 						'upgrade-insecure-requests': '1',
@@ -392,7 +392,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 			page = await browser.new_page()
 			await page.set_extra_http_headers(
 				{
-					'accept-language': 'en-US,en;q=0.9',
+					'accept-language': 'vi-VN,vi;q=0.9',
 					'accept-encoding': 'gzip, deflate, br',
 					'referer': 'https://www.linkedin.com',
 					'upgrade-insecure-requests': '1',
@@ -401,7 +401,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 				}
 			)
 			# Set English language preference
-			await page.set_extra_http_headers({'Accept-Language': 'en-US,en;q=0.9'})
+			await page.set_extra_http_headers({'accept-language': 'vi-VN,vi;q=0.9'})
 
 			logger.info('Browser page created successfully')
 

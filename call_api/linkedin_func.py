@@ -29,7 +29,7 @@ async def search_companies(data: SearchRequestCompanies):
 				session_path,
 				headless=False,
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-				locale='en-US',
+				locale='vi-VN',
 				viewport={'width': 1366, 'height': 768},
 			)
 		else:
@@ -38,14 +38,14 @@ async def search_companies(data: SearchRequestCompanies):
 				session_path,
 				headless=False,
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-				locale='en-US',
+				locale='vi-VN',
 				viewport={'width': 1366, 'height': 768},
 			)
 
 		page = await browser.new_page()
 		await page.set_extra_http_headers(
 			{
-				'accept-language': 'en-US,en;q=0.9',
+				'accept-language': 'vi-VN,vi;q=0.9',
 				'accept-encoding': 'gzip, deflate, br',
 				'referer': 'https://www.linkedin.com',
 				'upgrade-insecure-requests': '1',
@@ -155,13 +155,13 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 			session_path,
 			headless=False,
 			user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-			locale='en-US',
+			locale='vi-VN',
 			viewport={'width': 1366, 'height': 768},
 		)
 		page = await browser.new_page()
 		await page.set_extra_http_headers(
 			{
-				'accept-language': 'en-US,en;q=0.9',
+				'accept-language': 'vi-VN,vi;q=0.9',
 				'accept-encoding': 'gzip, deflate, br',
 				'referer': 'https://www.linkedin.com',
 				'upgrade-insecure-requests': '1',
@@ -353,7 +353,7 @@ async def search_jobs(data: SearchRequestJobs):
 							session_path,
 							headless=False,
 							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-							locale='en-US',
+							locale='vi-VN',
 							viewport={'width': 1366, 'height': 768},
 						)
 						logging.info('Created new session')
@@ -364,7 +364,7 @@ async def search_jobs(data: SearchRequestJobs):
 				page = await browser.new_page()
 				await page.set_extra_http_headers(
 					{
-						'accept-language': 'en-US,en;q=0.9',
+						'accept-language': 'vi-VN,vi;q=0.9',
 						'accept-encoding': 'gzip, deflate, br',
 						'referer': 'https://www.linkedin.com',
 						'upgrade-insecure-requests': '1',
