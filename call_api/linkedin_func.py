@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import traceback
 from datetime import datetime, timedelta
 
 from playwright.async_api import async_playwright
@@ -123,72 +124,113 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 	if not os.path.exists(session_path):
 		return {'error': 'No active session found. Please login first.'}
 
+	# Define important positions to look for
+	important_positions = ['CEO', 'CTO', 'CFO', 'COO', 'Director', 'Manager', 'Lead', 'Head', 'Founder', 'President']
+	employees = []
+
 	async with async_playwright() as p:
 		browser = await p.chromium.launch_persistent_context(session_path, headless=False)
 		page = await browser.new_page()
 
-		# Navigate to company employees page
-		if data_request.company_url.endswith('/'):
-			data_request.company_url = data_request.company_url[:-1]
-		employees_url = f'{data_request.company_url}/people/'
-		await page.goto(employees_url)
-		await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
+		try:
+			for i in range(1, 100):
+				try:
+					# Navigate to the search URL using company name
+					company_name = data_request.company_url.strip()
+					search_url = f'https://www.linkedin.com/search/results/people/?keywords={company_name}&origin=GLOBAL_SEARCH_HEADER&page={i}'
+					await page.goto(search_url)
+					await simulate_human_behavior(page)
+				except Exception as e:
+					logging.error(
+						f'Error navigating to page {i}: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}'
+					)
+					return {'important_employees': employees}
 
-		# Define important positions to look for
-		important_positions = ['CEO', 'CTO', 'HR Manager', 'Head of Engineering']
+				try:
+					await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
+				except Exception as e:
+					logging.error(
+						f'Error waiting for selector on page {i}: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}'
+					)
+					break
 
-		# Get all employee elements
-		employee_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
+				employee_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
+				if not employee_elements:
+					break
 
-		important_employees = []
-		for employee in employee_elements:
-			# Get employee name and title
-			name_element = await employee.query_selector('(//span[contains(@class, "t-16")])[last()]')
-			title_element = await employee.query_selector('//div[contains(@class, "t-14 t-black")]')
+				for employee in employee_elements:
+					try:
+						# Get employee name
+						name_element = await employee.query_selector('//span[contains(@class, "t-16")]')
+						name = await name_element.inner_text() if name_element else 'N/A'
+						name = name.split('\n')[0]
+						if 'LinkedIn' in name:
+							continue
 
-			if name_element and title_element:
-				name = await name_element.inner_text()
-				title = await title_element.inner_text()
+						# Get employee title
+						title_element = await employee.query_selector('//div[contains(@class, "t-14 t-black")]')
+						title = await title_element.inner_text() if title_element else 'N/A'
 
-				# Check if employee has an important position
-				if any(pos.lower() in title.lower() for pos in important_positions):
-					# Get profile URL
-					profile_link = await employee.query_selector('//a[contains(@data-test-app-aware-link, "")]')
-					profile_url = await profile_link.get_attribute('href') if profile_link else 'N/A'
+						# Check if employee has an important position
+						if not any(pos.lower() in title.lower() for pos in important_positions):
+							continue
 
-					# Get company name
-					company_element = await employee.query_selector('//div[contains(@class, "t-12 t-black")]')
-					company = await company_element.inner_text() if company_element else 'N/A'
+						# Get profile URL
+						profile_link = await employee.query_selector('//a[contains(@data-test-app-aware-link, "")]')
+						profile_url = await profile_link.get_attribute('href') if profile_link else 'N/A'
 
-					# Visit profile to get public email if available
-					if profile_url and profile_url != 'N/A':
-						await page.goto(profile_url)
-						await simulate_human_behavior(page)
-						await page.wait_for_load_state('load')
+						# Get company name
+						company = data_request.company_url.strip()
 
-						# Look for email in contact info
+						# Visit profile to get public email if available
 						email = 'N/A'
-						try:
-							contact_button = await page.query_selector('//button[contains(text(), "Contact info")]')
-							if contact_button:
-								await contact_button.click()
-								await simulate_human_behavior(page)
-								email_element = await page.query_selector('//a[contains(@href, "mailto:")]')
-								if email_element:
-									email = await email_element.inner_text()
-						except:
-							pass
+						# if profile_url and profile_url != 'N/A':
+						# 	try:
+						# 		await page.goto(profile_url)
+						# 		await simulate_human_behavior(page)
+						# 		await page.wait_for_load_state('load')
 
-						important_employees.append(
+						# 		# Check if profile is accessible
+						# 		access_error = await page.query_selector('text="You don\'t have access to this profile"')
+						# 		if access_error:
+						# 			logging.info(f'Profile not accessible for {name}')
+						# 			email = "You don't have access to this profile"
+						# 			# Go back to search results page
+						# 			await page.goto(search_url)
+						# 			await simulate_human_behavior(page)
+						# 			await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
+						# 		else:
+						# 			# If profile is accessible, try to get email
+						# 			contact_button = await page.query_selector('//button[contains(text(), "Contact info")]')
+						# 			if contact_button:
+						# 				await contact_button.click()
+						# 				await simulate_human_behavior(page)
+						# 				email_element = await page.query_selector('//a[contains(@href, "mailto:")]')
+						# 				if email_element:
+						# 					email = await email_element.inner_text()
+						# 	except Exception as e:
+						# 		logging.error(
+						# 			f'Error accessing profile for {name}: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}'
+						# 		)
+						# 		email = f'Error: {str(e)}'
+
+						employees.append(
 							{'Name': name, 'Title': title, 'Company': company, 'Profile URL': profile_url, 'Email': email}
 						)
+						print(f'Name: {name} - Title: {title} - URL: {profile_url} - Email: {email}')
 
-						# Go back to employees page
-						await page.goto(employees_url)
-						await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
+					except Exception as e:
+						logging.error(
+							f'Error processing employee: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}'
+						)
+						continue
 
-		await browser.close()
-		return {'important_employees': important_employees}
+		except Exception as e:
+			logging.error(f'Error during search: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}')
+		finally:
+			await browser.close()
+
+		return {'important_employees': employees}
 
 
 async def search_jobs(data: SearchRequestJobs):
