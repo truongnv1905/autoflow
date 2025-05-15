@@ -414,7 +414,7 @@ async def search_jobs(data: SearchRequestJobs):
 				max_jobs = data.numbers  # Giới hạn số lượng công việc
 				page_start_time = time.time()
 				start_number = 0
-
+				number_end = 0
 				while True:
 					try:
 						# Kiểm tra nếu đã đạt giới hạn
@@ -710,6 +710,9 @@ async def search_jobs(data: SearchRequestJobs):
 					except Exception as page_err:
 						logging.error(f'Error processing page {page_number}: {str(page_err)}')
 						page_number += 1
+						number_end += 1
+						if number_end > 10:
+							break
 						continue  # Try next page
 
 				await browser.close()
