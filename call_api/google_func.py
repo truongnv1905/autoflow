@@ -434,54 +434,55 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 				await simulate_human_behavior(page)
 
 				# Get CEO information
-				try:
-					logger.info('Looking for CEO information')
-					# Click on "People" tab
-					# Search for CEO
-					logger.info('Waiting for search input to appear')
-					await page.wait_for_selector('textarea.org-people__search-input', timeout=5000)
 
-					for text in ['CEO', 'CTO', 'CFO', 'HeadofEngineering']:
-						# Check and click the button first using exact class structure
-						logger.info('Checking for search button')
-						button_selector = 'button.artdeco-button.artdeco-button--tertiary.artdeco-button--2.artdeco-button--muted[type="button"]'
-						search_button = await page.query_selector(button_selector)
+				# try:
+				# 	logger.info('Looking for CEO information')
+				# 	# Click on "People" tab
+				# 	# Search for CEO
+				# 	logger.info('Waiting for search input to appear')
+				# 	await page.wait_for_selector('textarea.org-people__search-input', timeout=5000)
 
-						if search_button:
-							logger.info('Found search button, clicking it')
-							await search_button.click()
-							await simulate_human_behavior(page)
-						else:
-							logger.warning('Search button not found')
+				# 	for text in ['CEO', 'CTO', 'CFO', 'HeadofEngineering']:
+				# 		# Check and click the button first using exact class structure
+				# 		logger.info('Checking for search button')
+				# 		button_selector = 'button.artdeco-button.artdeco-button--tertiary.artdeco-button--2.artdeco-button--muted[type="button"]'
+				# 		search_button = await page.query_selector(button_selector)
 
-						search_input = await page.query_selector('textarea.org-people__search-input')
-						if search_input:
-							logger.info(f'Search input found, filling in {text} keyword')
-							await search_input.fill(text)
-							logger.info('Pressing Enter to search')
-							await page.keyboard.press('Enter')
-							await page.wait_for_timeout(2000)
+				# 		if search_button:
+				# 			logger.info('Found search button, clicking it')
+				# 			await search_button.click()
+				# 			await simulate_human_behavior(page)
+				# 		else:
+				# 			logger.warning('Search button not found')
 
-							# Wait for search results and get first profile
-							logger.info('Waiting for search results')
-							await page.wait_for_selector(
-								'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing', timeout=5000
-							)
-							# Get first profile link
-							first_profile = await page.query_selector(
-								'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing a[href*="/in/"]'
-							)
-							if first_profile:
-								profile_url = await first_profile.get_attribute('href')
-								if profile_url:
-									result[text] = profile_url
-									logger.info(f'Found {text} LinkedIn: {result[text]}')
-								else:
-									logger.warning('Profile URL not found in first result')
-							else:
-								logger.warning('No profile results found')
-				except Exception as e:
-					logger.error(f'Error getting {text} information: {str(e)}')
+				# 		search_input = await page.query_selector('textarea.org-people__search-input')
+				# 		if search_input:
+				# 			logger.info(f'Search input found, filling in {text} keyword')
+				# 			await search_input.fill(text)
+				# 			logger.info('Pressing Enter to search')
+				# 			await page.keyboard.press('Enter')
+				# 			await page.wait_for_timeout(2000)
+
+				# 			# Wait for search results and get first profile
+				# 			logger.info('Waiting for search results')
+				# 			await page.wait_for_selector(
+				# 				'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing', timeout=5000
+				# 			)
+				# 			# Get first profile link
+				# 			first_profile = await page.query_selector(
+				# 				'li.grid.grid__col--lg-8.block.org-people-profile-card__profile-card-spacing a[href*="/in/"]'
+				# 			)
+				# 			if first_profile:
+				# 				profile_url = await first_profile.get_attribute('href')
+				# 				if profile_url:
+				# 					result[text] = profile_url
+				# 					logger.info(f'Found {text} LinkedIn: {result[text]}')
+				# 				else:
+				# 					logger.warning('Profile URL not found in first result')
+				# 			else:
+				# 				logger.warning('No profile results found')
+				# except Exception as e:
+				# 	logger.error(f'Error getting {text} information: {str(e)}')
 
 				end_time = time.time()
 				total_time = end_time - start_time
