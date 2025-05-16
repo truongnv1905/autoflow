@@ -121,7 +121,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 				total_page_time = 0
 				total_job_processing_time = 0
 				logger.info(f'Starting job collection with max jobs limit: {max_jobs}')
-
+				number_end = 0
 				while True:
 					if len(jobs) >= max_jobs:
 						logger.info(f'Reached maximum job limit of {max_jobs}')
@@ -250,7 +250,9 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 
 					except Exception as e:
 						logger.error(f'Error during page processing: {str(e)}')
-						break
+						number_end += 1
+						if number_end >= 1:
+							break
 
 					page_time = log_timing(page_start_time, f'Page {page_number} total')
 					total_page_time += page_time
