@@ -32,3 +32,15 @@ async def simulate_human_behavior(page):
 
 	# Thời gian delay giữa các thao tác
 	await asyncio.sleep(random.uniform(2.5, 5.0))
+
+
+def load_proxy():
+	with open('proxy.txt', 'r', encoding='utf-8') as file:
+		proxies = file.readlines()
+	random_proxy = random.choice(proxies)
+	proxy = {
+		'server': f'http://{random_proxy.split(":")[0]}:{random_proxy.split(":")[1]}',
+		'username': random_proxy.split(':')[2],
+		'password': random_proxy.split(':')[3].strip(),
+	}
+	return proxy

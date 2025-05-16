@@ -9,7 +9,7 @@ from urllib.parse import quote
 from playwright.async_api import async_playwright
 
 from call_api.schema import SearchRequestJobs
-from call_api.utils import config, simulate_human_behavior
+from call_api.utils import config, load_proxy, simulate_human_behavior
 
 # Configure logging
 logging.basicConfig(
@@ -57,6 +57,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
+					proxy=load_proxy(),
 					args=[
 						'--disable-blink-features=AutomationControlled',
 						'--disable-infobars',
@@ -74,6 +75,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
+					proxy=load_proxy(),
 					args=[
 						'--disable-blink-features=AutomationControlled',
 						'--disable-infobars',
@@ -357,6 +359,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 						'--window-size=1920,1080',
 						'--start-maximized',
 					],
+					proxy=load_proxy(),
 					ignore_default_args=['--enable-automation'],
 					viewport={'width': 1920, 'height': 1080},
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -368,6 +371,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 				browser = await p.chromium.launch_persistent_context(
 					session_path,
 					headless=False,
+					proxy=load_proxy(),
 					args=[
 						'--disable-blink-features=AutomationControlled',
 						'--disable-infobars',
