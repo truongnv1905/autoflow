@@ -78,6 +78,23 @@ async def search_companies(data: SearchRequestCompanies):
 				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
 				window.chrome = { runtime: {} };
 			""")
+		page1 = await browser.new_page()
+		await page1.set_extra_http_headers(
+			{
+				'accept-language': 'vi-VN,vi;q=0.9',
+				'accept-encoding': 'gzip, deflate, br',
+				'referer': 'https://www.linkedin.com',
+				'upgrade-insecure-requests': '1',
+				'sec-fetch-user': '?1',
+				'sec-fetch-site': 'same-origin',
+			}
+		)
+		await page1.add_init_script("""
+				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				window.chrome = { runtime: {} };
+			""")
 		# Kiểm tra nếu chưa đăng nhập
 		await page.goto('https://www.linkedin.com/feed/')
 		await simulate_human_behavior(page)
@@ -105,11 +122,11 @@ async def search_companies(data: SearchRequestCompanies):
 
 			# Tìm kiếm công ty với số trang
 			search_url = f'https://www.linkedin.com/search/results/companies/?keywords={data.search_keyword}&page={page_number}'
-		await page.goto(search_url)
-		await page.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
-		await simulate_human_behavior(page)
+		await page1.goto(search_url)
+		await page1.wait_for_selector("ul[role='list'].list-style-none", timeout=5000)
+		await simulate_human_behavior(page1)
 		# Lấy danh sách công ty
-		company_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
+		company_elements = await page1.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
 
 		# Nếu không có kết quả, thoát vòng lặp
 		if not company_elements:
@@ -145,16 +162,16 @@ async def search_companies(data: SearchRequestCompanies):
 
 			# Kiểm tra nút next page
 			# Cuộn trang xuống dưới để load nút Next
-			await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-			await simulate_human_behavior(page)  # Thêm delay sau khi cuộn
-			await page.wait_for_load_state('load')  # Đợi cho đến khi trang load xong
+			await page1.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+			await simulate_human_behavior(page1)  # Thêm delay sau khi cuộn
+			await page1.wait_for_load_state('load')  # Đợi cho đến khi trang load xong
 
-			next_button = await page.query_selector('button[aria-label="Next"]')
+			next_button = await page1.query_selector('button[aria-label="Next"]')
 			if not next_button or await next_button.is_disabled():
 				break
 
-			page_number += 1
-			await simulate_human_behavior(page)  # Thêm delay giữa các trang
+				page_number += 1
+				await simulate_human_behavior(page1)  # Thêm delay giữa các trang
 
 		await browser.close()
 		return {
@@ -452,6 +469,23 @@ async def search_jobs(data: SearchRequestJobs):
 					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
 					window.chrome = { runtime: {} };
 				""")
+				page1 = await browser.new_page()
+				await page1.set_extra_http_headers(
+					{
+						'accept-language': 'vi-VN,vi;q=0.9',
+						'accept-encoding': 'gzip, deflate, br',
+						'referer': 'https://www.linkedin.com',
+						'upgrade-insecure-requests': '1',
+						'sec-fetch-user': '?1',
+						'sec-fetch-site': 'same-origin',
+					}
+				)
+				await page1.add_init_script("""
+					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+					window.chrome = { runtime: {} };
+				""")
 				# Kiểm tra nếu chưa đăng nhập
 				try:
 					await page.goto('https://www.linkedin.com/feed/')
@@ -497,7 +531,7 @@ async def search_jobs(data: SearchRequestJobs):
 				number_end = 0
 				while True:
 					try:
-						# Kiểm tra nếu đã đạt giới hạn
+						# Kiểm tra nếu	 đã đạt giới hạn
 						if len(jobs) >= max_jobs:
 							logging.info(f'Reached maximum jobs limit: {max_jobs}')
 							break
@@ -557,14 +591,14 @@ async def search_jobs(data: SearchRequestJobs):
 
 						logging.info(f'Searching page {page_number}: {search_url}')
 						try:
-							await page.goto(search_url)
-							await page.wait_for_selector('div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000)
-							await simulate_human_behavior(page)
+							await page1.goto(search_url)
+							await page1.wait_for_selector('div[class*="scaffold-layout__list"] li[id*="ember"]', timeout=10000)
+							await simulate_human_behavior(page1)
 						except Exception as nav_err:
 							logging.error(f'Error navigating to search page: {str(nav_err)}')
 							# Try a more generic selector or continue to next page
 							try:
-								await page.wait_for_selector('div.jobs-search-results-list', timeout=5000)
+								await page1.wait_for_selector('div.jobs-search-results-list', timeout=5000)
 							except:
 								logging.error('Failed to find job listings, moving to next page')
 								page_number += 1
@@ -578,14 +612,14 @@ async def search_jobs(data: SearchRequestJobs):
 						# Lấy danh sách công việc
 						job_elements = []
 						try:
-							job_elements = await page.query_selector_all('div[class*="scaffold-layout__list"] li[id*="ember"]')
+							job_elements = await page1.query_selector_all('div[class*="scaffold-layout__list"] li[id*="ember"]')
 							start_number += len(job_elements)
 							logging.info(f'Found {len(job_elements)} jobs on page {page_number}')
 						except Exception as job_list_err:
 							logging.error(f'Error getting job list: {str(job_list_err)}')
 							try:
 								# Try alternative selector
-								job_elements = await page.query_selector_all('li.jobs-search-results__list-item')
+								job_elements = await page1.query_selector_all('li.jobs-search-results__list-item')
 								start_number += len(job_elements)
 								logging.info(f'Found {len(job_elements)} jobs using alternative selector on page {page_number}')
 							except:
@@ -621,11 +655,11 @@ async def search_jobs(data: SearchRequestJobs):
 
 										try:
 											await title_element.click()
-											await simulate_human_behavior(page)
+											await simulate_human_behavior(page1)
 											logging.info('Successfully clicked on job listing')
 
 											# Wait for job details to load
-											await page.wait_for_selector(
+											await page1.wait_for_selector(
 												'div[class*="jobs-search__job-details--wrapper"]', timeout=5000
 											)
 										except Exception as click_err:
@@ -674,7 +708,7 @@ async def search_jobs(data: SearchRequestJobs):
 
 								# Lấy mô tả công việc
 								try:
-									description_element = await page.query_selector(
+									description_element = await page1.query_selector(
 										'div[class*="jobs-search__job-details--wrapper"]'
 									)
 									if description_element:
@@ -698,7 +732,7 @@ async def search_jobs(data: SearchRequestJobs):
 								# Lấy tất cả các span có class chứa "tvm__text"
 								tvm_text_details = []
 								try:
-									tertiary_container = await page.query_selector(
+									tertiary_container = await page1.query_selector(
 										'div.t-black--light.mt2.job-details-jobs-unified-top-card__tertiary-description-container'
 									)
 									# Tìm tất cả các phần tử span có class chứa "tvm__text" trên trang
@@ -787,11 +821,11 @@ async def search_jobs(data: SearchRequestJobs):
 									logging.error(f'Error creating job data: {str(data_err)}')
 							except Exception as job_process_err:
 								logging.error(f'Error processing job: {str(job_process_err)}')
-								
+
 								continue  # Skip this job and continue with the next one
 
 						page_number += 1
-						await simulate_human_behavior(page)
+						await simulate_human_behavior(page1)
 					except Exception as page_err:
 						logging.error(f'Error processing page {page_number}: {str(page_err)}')
 						page_number += 1
