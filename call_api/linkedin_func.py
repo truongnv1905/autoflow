@@ -32,6 +32,13 @@ async def search_companies(data: SearchRequestCompanies):
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 				locale='vi-VN',
 				viewport={'width': 1366, 'height': 768},
+				args=[
+					'--disable-blink-features=AutomationControlled',
+					'--disable-infobars',
+					'--disable-notifications',
+					'--disable-popup-blocking',
+					'--disable-extensions',
+				],
 			)
 		else:
 			os.makedirs(session_path)  # Tạo thư mục lưu session nếu chưa có
@@ -41,6 +48,16 @@ async def search_companies(data: SearchRequestCompanies):
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 				locale='vi-VN',
 				viewport={'width': 1366, 'height': 768},
+				args=[
+					'--disable-blink-features=AutomationControlled',
+					'--disable-infobars',
+					'--start-maximized',
+					'--no-default-browser-check',
+					'--no-first-run',
+					'--disable-dev-shm-usage',
+					'--disable-gpu',
+					'--disable-extensions',
+				],
 			)
 
 		page = await browser.new_page()
@@ -54,6 +71,12 @@ async def search_companies(data: SearchRequestCompanies):
 				'sec-fetch-site': 'same-origin',
 			}
 		)
+		await page.add_init_script("""
+				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				window.chrome = { runtime: {} };
+			""")
 		# Kiểm tra nếu chưa đăng nhập
 		await page.goto('https://www.linkedin.com/feed/')
 		await simulate_human_behavior(page)
@@ -159,6 +182,13 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 			user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 			locale='vi-VN',
 			viewport={'width': 1366, 'height': 768},
+			args=[
+				'--disable-blink-features=AutomationControlled',
+				'--disable-infobars',
+				'--disable-notifications',
+				'--disable-popup-blocking',
+				'--disable-extensions',
+			],
 		)
 		page = await browser.new_page()
 		await page.set_extra_http_headers(
@@ -171,7 +201,13 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				'sec-fetch-site': 'same-origin',
 			}
 		)
-				# Kiểm tra nếu chưa đăng nhập
+		await page.add_init_script("""
+				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				window.chrome = { runtime: {} };
+			""")
+		# Kiểm tra nếu chưa đăng nhập
 		if not os.path.exists(session_path):
 			await page.goto('https://www.linkedin.com/feed/')
 			await simulate_human_behavior(page)
@@ -181,7 +217,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				await simulate_human_behavior(page)
 				await page.fill('input[type=email]', data_request.username)
 				await simulate_human_behavior(page)
-				await page.fill('input[type=password]', "Thiennhi2502")
+				await page.fill('input[type=password]', 'Thiennhi2502')
 				await simulate_human_behavior(page)
 				await page.click('button[type=submit]')
 				await simulate_human_behavior(page)
@@ -363,6 +399,13 @@ async def search_jobs(data: SearchRequestJobs):
 							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 							locale='en-US',
 							viewport={'width': 1366, 'height': 768},
+							args=[
+								'--disable-blink-features=AutomationControlled',
+								'--disable-infobars',
+								'--disable-notifications',
+								'--disable-popup-blocking',
+								'--disable-extensions',
+							],
 						)
 						logging.info('Using existing session')
 					else:
@@ -374,6 +417,13 @@ async def search_jobs(data: SearchRequestJobs):
 							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 							locale='vi-VN',
 							viewport={'width': 1366, 'height': 768},
+							args=[
+								'--disable-blink-features=AutomationControlled',
+								'--disable-infobars',
+								'--disable-notifications',
+								'--disable-popup-blocking',
+								'--disable-extensions',
+							],
 						)
 						logging.info('Created new session')
 				except Exception as browser_err:
@@ -391,6 +441,12 @@ async def search_jobs(data: SearchRequestJobs):
 						'sec-fetch-site': 'same-origin',
 					}
 				)
+				await page.add_init_script("""
+					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+					window.chrome = { runtime: {} };
+				""")
 				# Kiểm tra nếu chưa đăng nhập
 				try:
 					await page.goto('https://www.linkedin.com/feed/')

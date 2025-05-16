@@ -57,6 +57,13 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
+					args=[
+						'--disable-blink-features=AutomationControlled',
+						'--disable-infobars',
+						'--disable-notifications',
+						'--disable-popup-blocking',
+						'--disable-extensions',
+					],
 				)
 			else:
 				logger.info(f'Creating new session at: {session_path}')
@@ -67,6 +74,13 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 					locale='vi-VN',
 					viewport={'width': 1366, 'height': 768},
+					args=[
+						'--disable-blink-features=AutomationControlled',
+						'--disable-infobars',
+						'--disable-notifications',
+						'--disable-popup-blocking',
+						'--disable-extensions',
+					],
 				)
 			session_time = log_timing(session_start, 'Session setup')
 
@@ -81,6 +95,13 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 					'sec-fetch-site': 'same-origin',
 				}
 			)
+			# Anti-detection scripts
+			await page.add_init_script("""
+				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				window.chrome = { runtime: {} };
+			""")
 			logger.info('Browser page created successfully')
 
 			# Navigate to Google Jobs
@@ -379,6 +400,13 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 						'sec-fetch-site': 'same-origin',
 					}
 				)
+				# Anti-detection scripts
+				await page.add_init_script("""
+					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+					window.chrome = { runtime: {} };
+				""")
 				await page.goto('https://www.linkedin.com/feed/')
 				if 'login' in page.url:
 					await page.goto('https://www.linkedin.com/login')
@@ -402,6 +430,12 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					'sec-fetch-site': 'same-origin',
 				}
 			)
+			await page.add_init_script("""
+					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+					window.chrome = { runtime: {} };
+				""")
 			# Set English language preference
 			await page.set_extra_http_headers({'accept-language': 'vi-VN,vi;q=0.9'})
 
