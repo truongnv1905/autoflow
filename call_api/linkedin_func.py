@@ -225,6 +225,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 		try:
 			list_page = list(range(1, 100))
 			# random.shuffle(list_page)
+
 			for i in list_page:
 				try:
 					# Navigate to the search URL using company name
@@ -564,6 +565,10 @@ async def search_jobs(data: SearchRequestJobs):
 								logging.error('Failed to find job listings, moving to next page')
 								page_number += 1
 								start_number += 25  # LinkedIn typically shows 25 jobs per page
+								number_end += 1
+								if number_end > 10:
+									break
+
 								continue
 
 						# Lấy danh sách công việc
@@ -778,6 +783,7 @@ async def search_jobs(data: SearchRequestJobs):
 									logging.error(f'Error creating job data: {str(data_err)}')
 							except Exception as job_process_err:
 								logging.error(f'Error processing job: {str(job_process_err)}')
+								
 								continue  # Skip this job and continue with the next one
 
 						page_number += 1
