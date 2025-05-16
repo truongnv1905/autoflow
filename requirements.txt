@@ -1,0 +1,3 @@
+browser-use
+webdriver-manager==4.0.1
+openai==1.12.0

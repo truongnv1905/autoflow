@@ -183,7 +183,7 @@ gcp-login.json
 .vscode
 .ruff_cache
 .idea
-*.txt
+# *.txt
 *.pdf
 *.csv
 *.json
