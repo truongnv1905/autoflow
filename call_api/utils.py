@@ -37,6 +37,8 @@ async def simulate_human_behavior(page):
 def load_proxy():
 	with open('proxy.txt', 'r', encoding='utf-8') as file:
 		proxies = file.readlines()
+	if not proxies:
+		return
 	random_proxy = random.choice(proxies)
 	proxy = {
 		'server': f'http://{random_proxy.split(":")[0]}:{random_proxy.split(":")[1]}',
