@@ -1,6 +1,5 @@
 import logging
 import os
-import random
 import time
 import traceback
 from datetime import datetime, timedelta
@@ -133,7 +132,7 @@ async def search_companies(data: SearchRequestCompanies):
 		if not company_elements:
 			return
 		company_elements = company_elements[1:-1]
-		random.shuffle(company_elements)
+		# random.shuffle(company_elements)
 		for company in company_elements:
 			# Kiểm tra nếu đã đạt giới hạn
 			if len(companies) >= max_companies:
@@ -270,7 +269,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				employee_elements = await page.query_selector_all("(//ul[@role='list'][contains(@class, 'list-style-none')])/li")
 				if not employee_elements:
 					break
-				random.shuffle(employee_elements)
+				# random.shuffle(employee_elements)
 				for employee in employee_elements:
 					try:
 						# Get employee name
@@ -630,7 +629,7 @@ async def search_jobs(data: SearchRequestJobs):
 						if not job_elements:
 							logging.info('No more jobs found')
 							break
-						random.shuffle(job_elements)
+						# random.shuffle(job_elements)
 						for job in job_elements:
 							try:
 								# Kiểm tra nếu đã đạt giới hạn
@@ -647,9 +646,7 @@ async def search_jobs(data: SearchRequestJobs):
 
 								# Lấy tiêu đề công việc
 								try:
-									title_element = await job.query_selector(
-										'div[class*="full-width artdeco-entity-lockup__title ember-view"]'
-									)
+									title_element = await job.query_selector('div[dir="ltr"] > span[aria-hidden="true"] > strong')
 									if title_element:
 										title = await title_element.inner_text()
 										logging.info(f'Job title: {title}')
@@ -660,9 +657,9 @@ async def search_jobs(data: SearchRequestJobs):
 											logging.info('Successfully clicked on job listing')
 
 											# Wait for job details to load
-											await page1.wait_for_selector(
-												'div[class*="jobs-search__job-details--wrapper"]', timeout=5000
-											)
+											# await page1.wait_for_selector(
+											# 	'div[class*="jobs-search__job-details--wrapper"]', timeout=5000
+											# )
 										except Exception as click_err:
 											logging.error(f'Error clicking job: {str(click_err)}')
 								except Exception as title_err:
@@ -670,9 +667,7 @@ async def search_jobs(data: SearchRequestJobs):
 
 								# Lấy tên công ty
 								try:
-									company_element = await job.query_selector(
-										'div[class*="artdeco-entity-lockup__subtitle ember-view"]'
-									)
+									company_element = await job.query_selector('div[class*="subtitle"] div[dir="ltr"]')
 									if company_element:
 										company = await company_element.inner_text()
 										logging.info(f'Company: {company}')
@@ -681,9 +676,7 @@ async def search_jobs(data: SearchRequestJobs):
 
 								# Lấy địa điểm
 								try:
-									location_element = await job.query_selector(
-										'ul[class*="job-card-container__metadata-wrapper"]'
-									)
+									location_element = await job.query_selector('div.artdeco-entity-lockup__caption')
 									if location_element:
 										location = await location_element.inner_text()
 										logging.info(f'Location: {location}')
