@@ -9,7 +9,7 @@ import agentql
 from playwright.async_api import async_playwright
 
 from call_api.schema import SearchPeopleRequest, SearchRequestCompanies, SearchRequestJobs
-from call_api.utils import config, load_proxy, simulate_human_behavior
+from call_api.utils import config, simulate_human_behavior
 
 SESSION_DIR = config.config['session_manager']['dir_data']
 
@@ -49,7 +49,7 @@ async def search_companies(data: SearchRequestCompanies):
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 				locale='vi-VN',
 				viewport={'width': 1366, 'height': 768},
-				proxy=load_proxy(),
+				# proxy=load_proxy(),
 				args=[
 					'--disable-blink-features=AutomationControlled',
 					'--disable-infobars',
@@ -201,7 +201,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 			user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 			locale='vi-VN',
 			viewport={'width': 1366, 'height': 768},
-			proxy=load_proxy(),
+			# proxy=load_proxy(),
 			args=[
 				'--disable-blink-features=AutomationControlled',
 				'--disable-infobars',
@@ -420,7 +420,7 @@ async def search_jobs(data: SearchRequestJobs):
 							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 							locale='en-US',
 							viewport={'width': 1366, 'height': 768},
-							proxy=load_proxy(),
+							# proxy=load_proxy(),
 							args=[
 								'--disable-blink-features=AutomationControlled',
 								'--disable-infobars',
@@ -439,7 +439,7 @@ async def search_jobs(data: SearchRequestJobs):
 							user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 							locale='vi-VN',
 							viewport={'width': 1366, 'height': 768},
-							proxy=load_proxy(),
+							# proxy=load_proxy(),
 							args=[
 								'--disable-blink-features=AutomationControlled',
 								'--disable-infobars',
