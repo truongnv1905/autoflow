@@ -5,6 +5,7 @@ import time
 import traceback
 from datetime import datetime, timedelta
 
+import agentql
 from playwright.async_api import async_playwright
 
 from call_api.schema import SearchPeopleRequest, SearchRequestCompanies, SearchRequestJobs
@@ -61,40 +62,40 @@ async def search_companies(data: SearchRequestCompanies):
 				],
 			)
 
-		page = await browser.new_page()
-		await page.set_extra_http_headers(
-			{
-				'accept-language': 'vi-VN,vi;q=0.9',
-				'accept-encoding': 'gzip, deflate, br',
-				'referer': 'https://www.linkedin.com',
-				'upgrade-insecure-requests': '1',
-				'sec-fetch-user': '?1',
-				'sec-fetch-site': 'same-origin',
-			}
-		)
-		await page.add_init_script("""
-				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
-				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
-				window.chrome = { runtime: {} };
-			""")
-		page1 = await browser.new_page()
-		await page1.set_extra_http_headers(
-			{
-				'accept-language': 'vi-VN,vi;q=0.9',
-				'accept-encoding': 'gzip, deflate, br',
-				'referer': 'https://www.linkedin.com',
-				'upgrade-insecure-requests': '1',
-				'sec-fetch-user': '?1',
-				'sec-fetch-site': 'same-origin',
-			}
-		)
-		await page1.add_init_script("""
-				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
-				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
-				window.chrome = { runtime: {} };
-			""")
+		page = await agentql.wrap_async(browser.new_page())
+		# await page.set_extra_http_headers(
+		# 	{
+		# 		'accept-language': 'vi-VN,vi;q=0.9',
+		# 		'accept-encoding': 'gzip, deflate, br',
+		# 		'referer': 'https://www.linkedin.com',
+		# 		'upgrade-insecure-requests': '1',
+		# 		'sec-fetch-user': '?1',
+		# 		'sec-fetch-site': 'same-origin',
+		# 	}
+		# )
+		# await page.add_init_script("""
+		# 		Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+		# 		Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+		# 		Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+		# 		window.chrome = { runtime: {} };
+		# 	""")
+		page1 = await agentql.wrap_async(browser.new_page())
+		# await page1.set_extra_http_headers(
+		# 	{
+		# 		'accept-language': 'vi-VN,vi;q=0.9',
+		# 		'accept-encoding': 'gzip, deflate, br',
+		# 		'referer': 'https://www.linkedin.com',
+		# 		'upgrade-insecure-requests': '1',
+		# 		'sec-fetch-user': '?1',
+		# 		'sec-fetch-site': 'same-origin',
+		# 	}
+		# )
+		# await page1.add_init_script("""
+		# 		Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+		# 		Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+		# 		Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+		# 		window.chrome = { runtime: {} };
+		# 	""")
 		# Kiểm tra nếu chưa đăng nhập
 		await page.goto('https://www.linkedin.com/feed/')
 		await simulate_human_behavior(page)
@@ -209,23 +210,23 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				'--disable-extensions',
 			],
 		)
-		page = await browser.new_page()
-		await page.set_extra_http_headers(
-			{
-				'accept-language': 'vi-VN,vi;q=0.9',
-				'accept-encoding': 'gzip, deflate, br',
-				'referer': 'https://www.linkedin.com',
-				'upgrade-insecure-requests': '1',
-				'sec-fetch-user': '?1',
-				'sec-fetch-site': 'same-origin',
-			}
-		)
-		await page.add_init_script("""
-				Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-				Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
-				Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
-				window.chrome = { runtime: {} };
-			""")
+		page = await agentql.wrap_async(browser.new_page())
+		# await page.set_extra_http_headers(
+		# 	{
+		# 		'accept-language': 'vi-VN,vi;q=0.9',
+		# 		'accept-encoding': 'gzip, deflate, br',
+		# 		'referer': 'https://www.linkedin.com',
+		# 		'upgrade-insecure-requests': '1',
+		# 		'sec-fetch-user': '?1',
+		# 		'sec-fetch-site': 'same-origin',
+		# 	}
+		# )
+		# await page.add_init_script("""
+		# 		Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+		# 		Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+		# 		Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+		# 		window.chrome = { runtime: {} };
+		# 	""")
 		# Kiểm tra nếu chưa đăng nhập
 		if not os.path.exists(session_path):
 			await page.goto('https://www.linkedin.com/feed/')
@@ -452,40 +453,40 @@ async def search_jobs(data: SearchRequestJobs):
 					logging.error(f'Error launching browser: {str(browser_err)}')
 					return {'success': False, 'message': f'Error launching browser: {str(browser_err)}', 'jobs': []}
 
-				page = await browser.new_page()
-				await page.set_extra_http_headers(
-					{
-						'accept-language': 'vi-VN,vi;q=0.9',
-						'accept-encoding': 'gzip, deflate, br',
-						'referer': 'https://www.linkedin.com',
-						'upgrade-insecure-requests': '1',
-						'sec-fetch-user': '?1',
-						'sec-fetch-site': 'same-origin',
-					}
-				)
-				await page.add_init_script("""
-					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
-					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
-					window.chrome = { runtime: {} };
-				""")
-				page1 = await browser.new_page()
-				await page1.set_extra_http_headers(
-					{
-						'accept-language': 'vi-VN,vi;q=0.9',
-						'accept-encoding': 'gzip, deflate, br',
-						'referer': 'https://www.linkedin.com',
-						'upgrade-insecure-requests': '1',
-						'sec-fetch-user': '?1',
-						'sec-fetch-site': 'same-origin',
-					}
-				)
-				await page1.add_init_script("""
-					Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-					Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
-					Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
-					window.chrome = { runtime: {} };
-				""")
+				page = await agentql.wrap_async(browser.new_page())
+				# await page.set_extra_http_headers(
+				# 	{
+				# 		'accept-language': 'vi-VN,vi;q=0.9',
+				# 		'accept-encoding': 'gzip, deflate, br',
+				# 		'referer': 'https://www.linkedin.com',
+				# 		'upgrade-insecure-requests': '1',
+				# 		'sec-fetch-user': '?1',
+				# 		'sec-fetch-site': 'same-origin',
+				# 	}
+				# )
+				# await page.add_init_script("""
+				# 	Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				# 	Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				# 	Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				# 	window.chrome = { runtime: {} };
+				# """)
+				page1 = await agentql.wrap_async(browser.new_page())
+				# await page1.set_extra_http_headers(
+				# 	{
+				# 		'accept-language': 'vi-VN,vi;q=0.9',
+				# 		'accept-encoding': 'gzip, deflate, br',
+				# 		'referer': 'https://www.linkedin.com',
+				# 		'upgrade-insecure-requests': '1',
+				# 		'sec-fetch-user': '?1',
+				# 		'sec-fetch-site': 'same-origin',
+				# 	}
+				# )
+				# await page1.add_init_script("""
+				# 	Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+				# 	Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });
+				# 	Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+				# 	window.chrome = { runtime: {} };
+				# """)
 				# Kiểm tra nếu chưa đăng nhập
 				try:
 					await page.goto('https://www.linkedin.com/feed/')

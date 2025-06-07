@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict
 from urllib.parse import quote
 
+import agentql
 from playwright.async_api import async_playwright
 
 from call_api.schema import SearchRequestJobs
@@ -86,7 +87,7 @@ async def searching_jobs(data: SearchRequestJobs) -> Dict[str, Any]:
 				)
 			session_time = log_timing(session_start, 'Session setup')
 
-			page = await browser.new_page()
+			page = await agentql.wrap_async(browser.new_page())
 			await page.set_extra_http_headers(
 				{
 					'accept-language': 'vi-VN,vi;q=0.9',
@@ -395,7 +396,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 					user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 					locale='vi-VN',
 				)
-				page = await browser.new_page()
+				page = await agentql.wrap_async(browser.new_page())
 				await page.set_extra_http_headers(
 					{
 						'accept-language': 'vi-VN,vi;q=0.9',
@@ -425,7 +426,7 @@ async def search_company_linkedin(username: str, password: str, company_name: st
 			session_time = log_timing(session_start, 'Session setup')
 
 			logger.info('Creating new browser page')
-			page = await browser.new_page()
+			page = await agentql.wrap_async(browser.new_page())
 			await page.set_extra_http_headers(
 				{
 					'accept-language': 'vi-VN,vi;q=0.9',
