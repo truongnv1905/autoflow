@@ -635,6 +635,8 @@ async def search_jobs(data: SearchRequestJobs):
 								# Kiểm tra nếu đã đạt giới hạn
 								if len(jobs) >= max_jobs:
 									break
+								if job is None:
+									continue
 
 								# Initialize variables with default values
 								title = 'N/A'
@@ -649,17 +651,13 @@ async def search_jobs(data: SearchRequestJobs):
 									title_element = await job.query_selector('div[dir="ltr"] > span[aria-hidden="true"] > strong')
 									if title_element:
 										title = await title_element.inner_text()
+										title = title.encode('utf-8', errors='ignore').decode('utf-8')
 										logging.info(f'Job title: {title}')
 
 										try:
 											await title_element.click()
 											await simulate_human_behavior(page1)
 											logging.info('Successfully clicked on job listing')
-
-											# Wait for job details to load
-											# await page1.wait_for_selector(
-											# 	'div[class*="jobs-search__job-details--wrapper"]', timeout=5000
-											# )
 										except Exception as click_err:
 											logging.error(f'Error clicking job: {str(click_err)}')
 								except Exception as title_err:
@@ -670,6 +668,7 @@ async def search_jobs(data: SearchRequestJobs):
 									company_element = await job.query_selector('div[class*="subtitle"] div[dir="ltr"]')
 									if company_element:
 										company = await company_element.inner_text()
+										company = company.encode('utf-8', errors='ignore').decode('utf-8')
 										logging.info(f'Company: {company}')
 								except Exception as company_err:
 									logging.error(f'Error getting company: {str(company_err)}')
@@ -679,23 +678,20 @@ async def search_jobs(data: SearchRequestJobs):
 									location_element = await job.query_selector('div.artdeco-entity-lockup__caption')
 									if location_element:
 										location = await location_element.inner_text()
+										location = location.encode('utf-8', errors='ignore').decode('utf-8')
 										logging.info(f'Location: {location}')
 								except Exception as location_err:
 									logging.error(f'Error getting location: {str(location_err)}')
 
 								# Lấy URL công việc
 								try:
-									link_div = await job.query_selector(
-										'div[class*="full-width artdeco-entity-lockup__title ember-view"]'
-									)
-									if link_div:
-										link_element = await link_div.query_selector('a')
-										if link_element:
-											job_url = await link_element.get_attribute('href') or 'N/A'
-											if job_url != 'N/A':
-												# Ensure the URL is complete with domain
-												if not job_url.startswith('http'):
-													job_url = 'https://www.linkedin.com' + job_url
+									link_element = await job.query_selector('a[class*="card-wrapper__card-link"]')
+									if link_element:
+										job_url = await link_element.get_attribute('href') or 'N/A'
+										if job_url != 'N/A':
+											# Ensure the URL is complete with domain
+											if not job_url.startswith('http'):
+												job_url = 'https://www.linkedin.com' + job_url
 											logging.info(f'Found job URL: {job_url}')
 								except Exception as url_err:
 									logging.error(f'Error getting job URL: {str(url_err)}')
@@ -712,6 +708,7 @@ async def search_jobs(data: SearchRequestJobs):
 										if description_element_detail:
 											try:
 												description = await description_element_detail.inner_text()
+												description = description.encode('utf-8', errors='ignore').decode('utf-8')
 												logging.info('Successfully extracted job description')
 											except Exception as desc_text_err:
 												logging.error(f'Error getting job description text: {str(desc_text_err)}')
@@ -729,18 +726,17 @@ async def search_jobs(data: SearchRequestJobs):
 									tertiary_container = await page1.query_selector(
 										'div.t-black--light.mt2.job-details-jobs-unified-top-card__tertiary-description-container'
 									)
-									# Tìm tất cả các phần tử span có class chứa "tvm__text" trên trang
 									if tertiary_container:
 										tvm_text_elements = await tertiary_container.query_selector_all(
 											'span[class*="tvm__text"]'
 										)
-
 										if tvm_text_elements:
 											for span in tvm_text_elements:
 												try:
 													span_text = await span.inner_text()
 													if span_text:
 														span_text = span_text.strip()
+														span_text = span_text.encode('utf-8', errors='ignore').decode('utf-8')
 														tvm_text_details.append(span_text)
 
 														# Nếu chưa có thời gian đăng, kiểm tra xem span này có chứa thông tin thời gian không
@@ -784,7 +780,7 @@ async def search_jobs(data: SearchRequestJobs):
 												except Exception as span_err:
 													logging.error(f'Error processing span element: {str(span_err)}')
 
-											logging.info(f'Found {len(tvm_text_details)} tvm__text elements: {tvm_text_details}')
+											# logging.info(f'Found {len(tvm_text_details)} tvm__text elements: {tvm_text_details}')
 										else:
 											logging.warning('No span elements with class tvm__text found')
 								except Exception as tvm_err:
