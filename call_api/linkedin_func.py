@@ -242,7 +242,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 				await simulate_human_behavior(page)
 				await page.wait_for_load_state('load')
 		try:
-			list_page = list(range(1, 100))
+			list_page = list(range(1, 20))
 			# random.shuffle(list_page)
 
 			for i in list_page:
@@ -341,7 +341,7 @@ async def get_info_employees(data_request: SearchPeopleRequest):
 			logging.error(f'Error during search: {str(e)}\nLine: {traceback.extract_tb(e.__traceback__)[-1].lineno}')
 		finally:
 			await browser.close()
-
+		logging.info(employees)
 		return {'important_employees': employees}
 
 
